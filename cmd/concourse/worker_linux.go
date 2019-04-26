@@ -61,8 +61,12 @@ func (cmd *WorkerCommand) gardenRunner(logger lager.Logger) (atc.Worker, ifrit.R
 	if err != nil {
 		return atc.Worker{}, nil, err
 	}
+  if cmd.ExternalGarden {
+    fmt.Printf("Using external Garden Instance: %s:%d\n", cmd.BindIP, cmd.BindPort)
+  }
 
 	var runner ifrit.Runner
+
 	if cmd.Garden.UseHoudini {
 		runner, err = cmd.houdiniRunner(logger)
 	} else {
@@ -144,7 +148,10 @@ func (cmd *WorkerCommand) gdnRunner(logger lager.Logger) (ifrit.Runner, error) {
 	}
 
 	gdnArgs := append(gdnFlags, append([]string{"server"}, gdnServerFlags...)...)
-	gdnCmd := exec.Command(cmd.Garden.GDN, gdnArgs...)
+  if cmd.ExternalGarden {
+    gdnFlags = []string{"-v"}
+  }
+  gdnCmd := exec.Command(cmd.Garden.GDN, gdnArgs...)
 	gdnCmd.Stdout = os.Stdout
 	gdnCmd.Stderr = os.Stderr
 	gdnCmd.SysProcAttr = &syscall.SysProcAttr{

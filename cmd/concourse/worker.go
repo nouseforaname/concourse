@@ -29,7 +29,7 @@ type WorkerCommand struct {
 	Certs Certs
 
 	WorkDir flag.Dir `long:"work-dir" required:"true" description:"Directory in which to place container data."`
-
+  ExternalGarden bool `long:"external-garden" description:"do not start garden with worker, use Endpoint provided via BindIP and BindPort"`
 	BindIP   flag.IP `long:"bind-ip"   default:"127.0.0.1" description:"IP address on which to listen for the Garden server."`
 	BindPort uint16  `long:"bind-port" default:"7777"      description:"Port on which to listen for the Garden server."`
 
@@ -72,7 +72,6 @@ func (cmd *WorkerCommand) Runner(args []string) (ifrit.Runner, error) {
 	}
 
 	logger, _ := cmd.Logger.Logger("worker")
-
 	atcWorker, gardenRunner, err := cmd.gardenRunner(logger.Session("garden"))
 	if err != nil {
 		return nil, err
@@ -144,10 +143,10 @@ func (cmd *WorkerCommand) Runner(args []string) (ifrit.Runner, error) {
 	)
 
 	members := grouper.Members{
-		{
-			Name:   "garden",
-			Runner: NewLoggingRunner(logger.Session("garden-runner"), gardenRunner),
-		},
+    {
+      Name:   "garden",
+      Runner: NewLoggingRunner(logger.Session("garden-runner"), gardenRunner),
+    },
 		{
 			Name:   "baggageclaim",
 			Runner: NewLoggingRunner(logger.Session("baggageclaim-runner"), baggageclaimRunner),
